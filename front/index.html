@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css"
+      integrity="sha384-B0vP5xmATw1+K9KRQjQERJvTumQW0nPEzvF6L/Z6nronJ3oUOFUFpCjEUQouq2+l"
+      crossorigin="anonymous"
+    />
+  </head>
+  <body>
+    <div class="alert" hidden="true" id="alert1" role="alert"></div>
+
+    <table class="table text-center" id="datos">
+      <tr>
+        <th scope="col">Nombre</th>
+        <th scope="col">Raza</th>
+        <th scope="col">Color</th>
+        <th scope="col">Foto</th>
+        <th scope="col">Acciones</th>
+      </tr>
+    </table>
+
+    <div class="card">
+		<br><br><br>
+		<h1 class="text-center">Ingresar Perrito</h1>
+      <div class="card-body">
+        <div class="container">
+          <div class="row">
+
+            <form class="col-7 m-auto" name="fileinfo" id="formulario" enctype="multipart/form-data">
+              <div class="form-group">
+                <label for="nombre">Nombre</label>
+                <input type="text" class="form-control" id="nombre" name="nombre" />
+              </div>
+              <div class="form-group">
+                <label for="color">Color</label>
+                <input type="text" class="form-control" id="color" name="color" />
+              </div>
+              <div class="form-group">
+                <label for="raza">Raza</label>
+                <input type="text" class="form-control" id="raza" name="raza" />
+              </div>
+              <div class="form-group">
+                <label for="foto">Foto</label>
+                <input type="file" class="form-control-file" name="image" id="image" name="image" onchange="encodeImageFileAsURL(this)">
+              </div>
+              <button type="submit" class="btn btn-primary">Ingresar</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+      $.ajax({
+        type: "GET",
+        contentType: "application/json",
+        dataType: "json",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        url: "http://localhost:8000/api/perritos",
+        success: function (data) {
+          li = "";
+
+          console.log(data);
+
+          data[0].forEach((perrito) => {
+            li += "<tr>";
+            li += "<td>" + perrito.nombre + "</td>";
+            li += "<td>" + perrito.raza + "</td>";
+            li += "<td>" + perrito.color + "</td>";
+            li += "<td><img src="+perrito.foto +"></td>";
+            li +=
+              '<td><a class="btn btn-primary" href="actualizar.html?id=' +
+              perrito.id +
+              '">Actualizar</a>  <a class="btn btn-danger" onclick="Eliminar(' +
+              perrito.id +
+              ');">Eliminar</a></td>';
+            li += "</tr>";
+          });
+
+          $("#datos").append(li);
+        },
+      });
+
+      const Eliminar = (id) => {
+		  if(confirm("Esta seguro de eliminar a este perrito?")){
+
+        $.ajax({
+          type: "DELETE",
+          contentType: "application/json",
+          dataType: "json",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          url: "http://localhost:8000/api/perritos/" + id,
+          success: function (data) {
+            console.log(data);
+            location.reload();
+          },
+        });
+			  }
+      };
+
+
+
+
+      $('#formulario').submit(function (e) {
+
+        e.preventDefault();
+
+        const fotodata = $("#image").attr('data');
+
+        nombre = $("#nombre").val();
+        color = $("#color").val();
+        raza = $("#raza").val();
+
+
+         $.ajax({
+          type: "POST",
+          contentType: "application/json",
+          dataType: "json",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          url: "http://localhost:8000/api/ingresarPerrito/",
+          data: JSON.stringify({
+            nombre: nombre,
+            color: color,
+            raza: raza,
+            foto: fotodata,
+          }),
+          success: function (data, textStatus, xhr) {
+            console.log(data);
+            if (!data.error) {
+              $("#alert1").removeAttr("hidden");
+              $("#alert1").addClass("alert-success");
+              $("#alert1").text("El Objeto ha sido creado con exito");
+              setTimeout(function () {
+				   setTimeout(function(){ window.location = window.location.href; }, 500);
+              });
+            } else {
+				 $("#alert1").removeAttr("hidden");
+              $("#alert1").addClass("alert-danger");
+              $("#alert1").text(data.error);
+            }
+          },
+        });
+
+      });
+    </script>
+
+<script>
+
+  function encodeImageFileAsURL(element) {
+    var file = element.files[0];
+    var reader = new FileReader();
+    reader.onloadend = function() {
+     $('#image').attr('data', reader.result);
+    }
+    reader.readAsDataURL(file);
+  }
+  </script>
+  </body>
+</html>

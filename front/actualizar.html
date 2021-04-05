@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css"
+      integrity="sha384-B0vP5xmATw1+K9KRQjQERJvTumQW0nPEzvF6L/Z6nronJ3oUOFUFpCjEUQouq2+l"
+      crossorigin="anonymous"
+    />
+  </head>
+  <body>
+    <div class="container pt-5">
+           <div class="alert" hidden="true" id="alert" role="alert">
+
+</div>
+
+      <div class="row">
+        <h1 class="col-12 text-center" id="title">Actualizar <span></span></h1>
+        <form class="col-7 m-auto" id="formulario" onsubmit="return false">
+          <div class="form-group">
+            <label for="nombre">Nombre</label>
+            <input type="text" class="form-control" id="nombre" />
+          </div>
+          <div class="form-group">
+            <label for="color">Color</label>
+            <input type="text" class="form-control" id="color" />
+          </div>
+          <div class="form-group">
+            <label for="raza">Raza</label>
+            <input type="text" class="form-control" id="raza" />
+          </div>
+          <button type="submit" class="btn btn-primary">Modificar</button>
+        </form>
+      </div>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+      function getParameterByName(name) {
+        name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
+        let regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
+          results = regex.exec(location.search);
+        return results === null
+          ? ""
+          : decodeURIComponent(results[1].replace(/\+/g, " "));
+      }
+      let id = getParameterByName("id");
+
+      $.ajax({
+        type: "GET",
+        contentType: "application/json",
+        url: "http://localhost:8000/api/perritos/" + id,
+        success: function (data) {
+            $("#title").find("span").html(data[0].nombre);
+          $("#nombre").val(data[0].nombre);
+          $("#color").val(data[0].color);
+          $("#raza").val(data[0].raza);
+        },
+      });
+
+      $("#formulario").bind("submit", function () {
+
+          nombre= $("#nombre").val();
+          color= $("#color").val();
+          raza= $("#raza").val();
+        
+
+        $.ajax({
+    	type:'PUT',
+			contentType: 'application/json',
+			dataType: "json",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          url: "http://localhost:8000/api/perritos/" + id,
+          data:  JSON.stringify({
+              nombre:nombre,
+              color:color,
+              raza:raza
+          }),
+          success: function (data, textStatus) {
+            if(textStatus == "success"){
+              $('#alert').removeAttr('hidden');
+              $('#alert').addClass('alert-success');
+              $('#alert').text('El Objeto ha sido modificado con exito');
+
+  setTimeout(function(){ window.location = "index.html"; }, 1000);
+            }else{
+              $('#alert').removeAttr('hidden');
+              $('#alert').addClass('alert-danger');
+              $('#alert').text('El Objeto no ha sido modificado');
+            }
+          },
+        });
+      });
+    </script>
+  </body>
+</html>
